@@ -2,5 +2,4 @@ data
 .vscode
 gen_py
 models
-*.csv
 **__pycache__
