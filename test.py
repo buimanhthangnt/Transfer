@@ -16,13 +16,11 @@ import tensorflow as tf
 # detector = CardDetector()
 
 with tf.Graph().as_default() as graph:
-    with tf.InteractiveSession().as_default() as sess:
-        model = load_model('models/passport_rotation_model.h5')
+    with tf.Session().as_default() as sess:
+        model = load_model('models/ma_model_new.h5')
 IDX2NAME = {
-    0: 0,
-    1: 180,
-    2: 270,
-    3: 90
+    0: 'no',
+    1: 'yes'
 }
 
 
@@ -40,13 +38,18 @@ def predict(image):
 
 if __name__ == '__main__':
     times = []
-    for idx, fp in enumerate(shuffle(glob.glob(os.path.join(sys.argv[1], '*')))):
+    for idx, fp in enumerate(shuffle(glob.glob(os.path.join(sys.argv[1], '*/*')))):
         if idx % 100 == 0 and idx != 0:
             print("Done: ", idx)
-            print(np.mean(np.array(times)))
-        
+            #print(np.mean(np.array(times)))
+        ext = fp.split('.')[-1]
+        label = fp.split('/')[-2]
+        if ext.lower() not in ['jpg', 'jpeg', 'png']: continue
         image = imageio.imread(fp)
-        # image = imutils.resize(image, height=224)
+        image = imutils.resize(image, height=224)
+        if image.shape[-1] != 3:
+            continue
+        # image, _ = detector.detect_card(image)
         if image is None:
             continue
         start = time.time()
@@ -55,10 +58,8 @@ if __name__ == '__main__':
                 pred = predict(image)
         times.append(time.time() - start)
         # print(IDX2NAME[pred])
-        # print(IDX2NAME[pred])
-        # cv2.imshow('test', image[:,:,::-1])
-        # cv2.waitKey(0)
-        if pred != 0:
-            print(fp, IDX2NAME[pred])
-            image = imutils.rotate_bound(image, IDX2NAME[pred])
-            cv2.imwrite(fp, image[:,:,::-1])
+        if label != IDX2NAME[pred]:
+            print(IDX2NAME[pred])
+            cv2.imshow('test', image[:,:,::-1])
+            cv2.waitKey(0)
+            print(fp, '\n')
